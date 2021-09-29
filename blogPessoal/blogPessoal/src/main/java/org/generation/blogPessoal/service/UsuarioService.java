@@ -1,6 +1,7 @@
 package org.generation.blogPessoal.service;
 
 import java.nio.charset.Charset;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -20,60 +21,65 @@ public class UsuarioService {
 	@Autowired
 	private  UsuarioRepository repository;
 	
-	public     Optional <Usuario> CadastrarUsuario (Usuario usuario) {
-        Optional<Usuario> user = repository.findByUsuario(usuario.getUsuario());
-        if(user.isPresent()) {
-            return Optional.ofNullable(null);
-        }
+	public List<Usuario> listarUsuarios() {
 
-    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		return repository.findAll();
 
-    String senhaEncoder = encoder.encode(usuario.getSenha());
-    usuario.setSenha(senhaEncoder);
+	}
 
-        return Optional.of(repository.save(usuario));
-    }
+	public Optional<Usuario> CadastrarUsuario(Usuario usuario) {
+		Optional<Usuario> user = repository.findByUsuario(usuario.getUsuario());
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		if (user.isPresent()) {
+			return Optional.ofNullable(null);
+		}
 
-    public List<Usuario> listarUsuarios() {
+		String senhaEncoder = encoder.encode(usuario.getSenha());
+		usuario.setSenha(senhaEncoder);
 
-        return repository.findAll();
+		return Optional.of(repository.save(usuario));
+	}
 
-    }
+	public Optional<UserLogin> Logar(Optional<UserLogin> user) {
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		Optional<Usuario> usuario = repository.findByUsuario(user.get().getUsuario());
 
-    public Optional<Usuario> atualizarUsuario(Usuario usuario) {
+		if (usuario.isPresent()) {
+			if (encoder.matches(user.get().getSenha(), usuario.get().getSenha())) {
 
-        if (repository.findById(usuario.getId()).isPresent()) {
+				String auth = user.get().getUsuario() + ":" + user.get().getSenha();
+				byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("US-ASCII")));
+				String authHeader = "Basic " + new String(encodedAuth);
 
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+				user.get().setToken(authHeader);
+				user.get().setId(usuario.get().getId());
+				user.get().setNome(usuario.get().getNome());
+				user.get().setFoto(usuario.get().getFoto());
+				user.get().setTipo(usuario.get().getTipo());
+				
 
-            String senhaEncoder = encoder.encode(usuario.getSenha());
-            usuario.setSenha(senhaEncoder);
+				return user;
+			}
+		}
 
-            return Optional.of(repository.save(usuario));
+		return null;
+	}
 
-        } else {
+	public Optional<Usuario> atualizarUsuario(Usuario usuario) {
 
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado!", null);
+		if (repository.findById(usuario.getId()).isPresent()) {
 
-        }
-    }
+			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public Optional <UserLogin> Logar (Optional <UserLogin> user) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder ();
-        Optional <Usuario> usuario = repository.findByUsuario(user.get().getUsuario());
+			String senhaEncoder = encoder.encode(usuario.getSenha());
+			usuario.setSenha(senhaEncoder);
 
-        if (usuario.isPresent()) {
-            if (encoder.matches(user.get().getSenha(), usuario.get().getSenha())) {
-                String auth = user.get().getUsuario() + ":" + user.get().getSenha();
-                byte [] encodeAuth = Base64.encodeBase64 (auth.getBytes(Charset.forName("US-ASCII")));
+			return Optional.of(repository.save(usuario));
 
-                String authHeader = "Basic " + new String (encodeAuth);
-                user.get().setToken(authHeader);
-                user.get().setNome(usuario.get().getNome());
-                return user;
-            }
-        }
-        return null;
-    }
-}
-	
+		} else {
+
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado!", null);
+
+		}
+	}
+	}

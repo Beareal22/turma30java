@@ -1,6 +1,7 @@
 package org.generation.blogPessoal.seguranca;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import  org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -27,6 +28,7 @@ public class BasicSecurityConfig extends WebSecurityConfigurerAdapter {
 	.password(passwordEncoder().encode("Pandora123"))
 	.authorities("ROLE_USER");
 	}
+	
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
@@ -45,6 +47,5 @@ public class BasicSecurityConfig extends WebSecurityConfigurerAdapter {
 	.and().cors()
 	.and().csrf().disable();
 	}
-	
 	
 }
